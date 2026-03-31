@@ -21,7 +21,10 @@ type StripeController struct {
 // NewStripeController creates a new StripeController and registers its routes
 // on the provided router group (which should NOT have auth middleware).
 func NewStripeController(g *gin.RouterGroup) *StripeController {
-	a := &StripeController{}
+	a := &StripeController{
+		stripeService:  service.NewStripeService(),
+		settingService: service.SettingService{},
+	}
 	a.initRouter(g)
 	return a
 }

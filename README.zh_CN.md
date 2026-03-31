@@ -30,6 +30,83 @@ bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.
 
 完整文档请参阅 [项目Wiki](https://github.com/MHSanaei/3x-ui/wiki)。
 
+## Stripe 付款集成
+
+3X-UI 支持可选的 Stripe 计费功能，可以将每个 VPN 客户端与一个 Stripe 订阅绑定。当管理员通过面板添加客户端时，系统会自动在 Stripe 中创建对应的 Customer（客户）和 Subscription（订阅）。
+
+### 工作原理
+
+```
+管理员添加 VPN 客户端
+       │
+       ▼
+创建 Stripe Customer  ──►  创建 Stripe Subscription
+                                     │
+                           ┌─────────┴─────────┐
+                      invoice.paid      invoice.payment_failed
+                           │                   │
+                      启用 VPN 客户端      禁用 VPN 客户端
+```
+
+自动处理的 Webhook 事件：
+
+| Stripe 事件 | 操作 |
+|---|---|
+| `invoice.paid` | 启用 VPN 客户端 |
+| `invoice.payment_failed` | 禁用 VPN 客户端 |
+| `customer.subscription.deleted` | 禁用客户端，标记为已取消 |
+| `customer.subscription.updated` | 同步订阅状态 |
+
+### 配置步骤
+
+#### 1. 在 Stripe 中创建产品和价格
+
+在 [Stripe 控制台](https://dashboard.stripe.com/products) 中：
+1. 创建一个**产品**（例如"VPN 月度套餐"）
+2. 添加一个**定期计费价格**（例如 ¥68/月）
+3. 复制**价格 ID**（以 `price_` 开头）
+
+#### 2. 在面板中配置 Stripe 设置
+
+进入 3X-UI 面板的 **设置 → Stripe**，填写以下字段：
+
+| 设置项 | 说明 |
+|---|---|
+| **启用 Stripe** | 开启或关闭该集成 |
+| **Secret Key（密钥）** | 你的 Stripe 密钥（`sk_live_...` 或 `sk_test_...`） |
+| **Webhook Secret** | Webhook 端点的签名密钥（`whsec_...`） |
+| **Price ID（价格 ID）** | 上面创建的定期价格 ID（`price_...`） |
+
+#### 3. 在 Stripe 中注册 Webhook 端点
+
+在 **Stripe 控制台 → 开发者 → Webhooks** 中添加端点：
+
+```
+https://你的面板域名/stripe/webhook
+```
+
+订阅以下事件：
+- `invoice.paid`
+- `invoice.payment_failed`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+
+复制**签名密钥**（`whsec_...`）并填入面板的 **Webhook Secret** 字段。
+
+#### 4. 使用 Stripe CLI 测试（可选）
+
+```bash
+stripe listen --forward-to https://你的面板域名/stripe/webhook
+stripe trigger invoice.paid
+```
+
+### 注意事项
+
+- Stripe 集成默认**关闭**，启用前现有客户端不受影响。
+- Stripe Customer 和 Subscription 在客户端保存后**异步创建**，不影响面板响应速度。
+- 如果客户端没有设置邮箱地址，则不会为其创建 Stripe 记录。
+- 无论 Stripe 订阅状态如何，管理员都可以在面板中手动启用或禁用客户端。
+
 ## 特别感谢
 
 - [alireza0](https://github.com/alireza0/)

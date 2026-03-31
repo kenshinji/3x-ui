@@ -678,10 +678,9 @@ func (s *InboundService) AddInboundClient(data *model.Inbound) (bool, error) {
 	}
 
 	// After successfully persisting the new clients, create Stripe customers asynchronously.
-	var stripeService StripeService
 	for _, client := range clients {
 		if client.Email != "" {
-			go stripeService.EnsureStripeCustomer(client.Email)
+			go EnsureStripeCustomerForEmail(client.Email)
 		}
 	}
 

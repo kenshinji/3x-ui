@@ -23,9 +23,24 @@ import (
 
 const stripeAPIBase = "https://api.stripe.com/v1"
 
+// stripeSettingReader is the minimal settings interface that StripeService
+// depends on. Using an interface here allows test code to inject fakes without
+// needing a live SQLite database.
+type stripeSettingReader interface {
+	GetStripeEnable() (bool, error)
+	GetStripeSecretKey() (string, error)
+	GetStripeWebhookSecret() (string, error)
+	GetStripePriceID() (string, error)
+}
+
 // StripeService handles Stripe customer and subscription management.
 type StripeService struct {
-	settingService SettingService
+	settingService stripeSettingReader
+}
+
+// NewStripeService returns a StripeService backed by the real SettingService.
+func NewStripeService() StripeService {
+	return StripeService{settingService: &SettingService{}}
 }
 
 // stripeCustomer is the minimal Stripe Customer object we care about.
@@ -278,6 +293,15 @@ func (s *StripeService) setClientEnabled(email string, enable bool) error {
 	var inboundService InboundService
 	_, _, err := inboundService.SetClientEnableByEmail(email, enable)
 	return err
+}
+
+// EnsureStripeCustomerForEmail is a package-level helper that creates (or looks up)
+// a StripeCustomer for the given client email using the real SettingService.
+// It is intended to be called from other services (e.g. InboundService) as a
+// fire-and-forget goroutine.
+func EnsureStripeCustomerForEmail(email string) {
+	svc := NewStripeService()
+	svc.EnsureStripeCustomer(email)
 }
 
 // EnsureStripeCustomer creates (or looks up) a StripeCustomer record for the given
