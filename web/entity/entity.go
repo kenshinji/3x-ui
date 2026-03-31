@@ -81,6 +81,12 @@ type AllSetting struct {
 	SubJsonMux                  string `json:"subJsonMux" form:"subJsonMux"`                                   // JSON subscription mux configuration
 	SubJsonRules                string `json:"subJsonRules" form:"subJsonRules"`
 
+	// Stripe payment settings
+	StripeEnable        bool   `json:"stripeEnable" form:"stripeEnable"`
+	StripeSecretKey     string `json:"stripeSecretKey" form:"stripeSecretKey"`
+	StripeWebhookSecret string `json:"stripeWebhookSecret" form:"stripeWebhookSecret"`
+	StripePriceID       string `json:"stripePriceId" form:"stripePriceId"`
+
 	// LDAP settings
 	LdapEnable     bool   `json:"ldapEnable" form:"ldapEnable"`
 	LdapHost       string `json:"ldapHost" form:"ldapHost"`

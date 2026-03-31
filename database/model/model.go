@@ -97,6 +97,17 @@ func (i *Inbound) GenXrayInboundConfig() *xray.InboundConfig {
 	}
 }
 
+// StripeCustomer maps a VPN client (by email) to a Stripe customer and subscription.
+type StripeCustomer struct {
+	Id                   int    `json:"id" gorm:"primaryKey;autoIncrement"`
+	ClientEmail          string `json:"clientEmail" gorm:"uniqueIndex"`
+	StripeCustomerID     string `json:"stripeCustomerId"`
+	StripeSubscriptionID string `json:"stripeSubscriptionId"`
+	Status               string `json:"status"` // active, inactive, past_due, canceled
+	CreatedAt            int64  `json:"createdAt"`
+	UpdatedAt            int64  `json:"updatedAt"`
+}
+
 // Setting stores key-value configuration settings for the 3x-ui panel.
 type Setting struct {
 	Id    int    `json:"id" form:"id" gorm:"primaryKey;autoIncrement"`

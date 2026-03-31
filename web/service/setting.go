@@ -81,6 +81,12 @@ var defaultValueMap = map[string]string{
 	"externalTrafficInformURI":    "",
 	"xrayOutboundTestUrl":         "https://www.google.com/generate_204",
 
+	// Stripe defaults
+	"stripeEnable":        "false",
+	"stripeSecretKey":     "",
+	"stripeWebhookSecret": "",
+	"stripePriceId":       "",
+
 	// LDAP defaults
 	"ldapEnable":            "false",
 	"ldapHost":              "",
@@ -686,6 +692,26 @@ func (s *SettingService) GetLdapDefaultExpiryDays() (int, error) {
 
 func (s *SettingService) GetLdapDefaultLimitIP() (int, error) {
 	return s.getInt("ldapDefaultLimitIP")
+}
+
+// GetStripeEnable returns whether Stripe payment integration is enabled.
+func (s *SettingService) GetStripeEnable() (bool, error) {
+	return s.getBool("stripeEnable")
+}
+
+// GetStripeSecretKey returns the Stripe secret API key.
+func (s *SettingService) GetStripeSecretKey() (string, error) {
+	return s.getString("stripeSecretKey")
+}
+
+// GetStripeWebhookSecret returns the Stripe webhook signing secret.
+func (s *SettingService) GetStripeWebhookSecret() (string, error) {
+	return s.getString("stripeWebhookSecret")
+}
+
+// GetStripePriceID returns the Stripe Price ID used for new subscriptions.
+func (s *SettingService) GetStripePriceID() (string, error) {
+	return s.getString("stripePriceId")
 }
 
 func (s *SettingService) UpdateAllSetting(allSetting *entity.AllSetting) error {

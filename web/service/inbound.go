@@ -673,7 +673,19 @@ func (s *InboundService) AddInboundClient(data *model.Inbound) (bool, error) {
 	}
 	s.xrayApi.Close()
 
-	return needRestart, tx.Save(oldInbound).Error
+	if err2 := tx.Save(oldInbound).Error; err2 != nil {
+		return needRestart, err2
+	}
+
+	// After successfully persisting the new clients, create Stripe customers asynchronously.
+	var stripeService StripeService
+	for _, client := range clients {
+		if client.Email != "" {
+			go stripeService.EnsureStripeCustomer(client.Email)
+		}
+	}
+
+	return needRestart, nil
 }
 
 func (s *InboundService) DelInboundClient(inboundId int, clientId string) (bool, error) {

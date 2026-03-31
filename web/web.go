@@ -270,6 +270,10 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	s.panel = controller.NewXUIController(g)
 	s.api = controller.NewAPIController(g)
 
+	// Stripe webhook — public route, protected by Stripe signature verification
+	stripeGroup := g.Group("/stripe")
+	controller.NewStripeController(stripeGroup)
+
 	// Initialize WebSocket hub
 	s.wsHub = websocket.NewHub()
 	go s.wsHub.Run()
